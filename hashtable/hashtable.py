@@ -7,6 +7,63 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def find(self, key):
+        if self.head == None:
+            return None
+
+        curr = self.head
+
+        while(curr != None):
+            if curr.key == key:
+                return curr
+            else:
+                curr = curr.next
+
+        return None
+
+    def insert(self, key, value):
+        new_node = HashTableEntry(key, value)
+        new_node.next = self.head
+        self.head = new_node
+
+    def remove(self, key):
+        curr = self.head #We need a variable to hold the current Node
+        warning = "Warning: key not found." #Our warning message
+
+        if curr == None: #Linked List has no nodes
+            print(warning)
+            return
+
+        #There is at least one node, but we can't use find because may need the prev node in order to delete
+
+        #first we need to check if it's at the head
+        if curr.key == key: #It's at the head
+            #We need to disconnect it from the next pointer
+            self.head = curr.next #That's it! The head pointer is completely overwritten
+            #the next pointer is now the head, if next is none, table[index] is none!
+            return
+
+        #It's not at the head, we have to check elsewhere
+        prev = curr #We will need to know the previous node in order to delete it
+        curr = curr.next #We need a place to hold the current node in the list; it's table[index].next because we checked the head
+
+        while(curr != None): #Go through the Linked List till you run into None
+            #print(curr.key, key)
+            if curr.key == key: #We found it! Now we must destroy it
+                prev.next = curr.next #prev points to the next node
+                curr.next = None # Got to remove all connections to and from current node, so it gets deleted
+                return
+            else:
+                prev = curr
+                curr = curr.next
+
+        #If you get this far the key was not found
+        print(warning)
+
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -21,8 +78,12 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        self.capacity = capacity
-        self.table = [None] * capacity
+        if capacity > MIN_CAPACITY:
+            self.capacity = capacity
+        else:
+            self.capacity = MIN_CAPACITY
+        
+        self.table = [LinkedList()] * capacity
 
 
     def get_num_slots(self):
@@ -69,7 +130,7 @@ class HashTable:
             fnv1_hash = fnv1_hash * 1099511628211
             fnv1_hash = fnv1_hash ^ e
 
-        print(fnv1_hash)
+        #print(fnv1_hash)
         return fnv1_hash
 
 
@@ -109,9 +170,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        self.table[self.hash_index(key)] = value
+        index = self.hash_index(key) #Get index
 
+        node = self.table[index].find(key)#Try to find the key in the linked list, store it in node
 
+        if node == None: #Key not found, let's insert a new one into the linked list!
+            self.table[index].insert(key, value)
+        else: #key found, lets override the current value
+            node.value = value
+    
     def delete(self, key):
         """
         Remove the value stored with the given key.
@@ -121,8 +188,9 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        self.table[self.hash_index(key)] = None
+        index = self.hash_index(key) #Let's just get the index and put it here
 
+        self.table[index].remove(key)
 
     def get(self, key):
         """
@@ -133,8 +201,14 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        return self.table[self.hash_index(key)]
+        index = self.hash_index(key) #get the index
+        
+        node = self.table[index].find(key) #search the linked list
 
+        if node == None: #node is None if the key wasn't found, return None
+            return None
+        
+        return node.value #Otherwise return the value
 
     def resize(self, new_capacity):
         """
