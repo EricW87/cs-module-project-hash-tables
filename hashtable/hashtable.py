@@ -11,12 +11,17 @@ class LinkedList:
     def __init__(self):
         self.head = None
 
-    def find(self, key):
-        if self.head == None:
-            return None
-
+    def __repr__(self):
+        currStr = ""
         curr = self.head
+        while curr is not None:
+            currStr += f'{str(curr.key)} {str(curr.value)} -> '
+            curr = curr.next
+        return currStr
 
+    def find(self, key):
+        curr = self.head
+        #print(self.head)
         while(curr != None):
             if curr.key == key:
                 return curr
@@ -70,48 +75,26 @@ MIN_CAPACITY = 8
 
 
 class HashTable:
-    """
-    A hash table that with `capacity` buckets
-    that accepts string keys
-
-    Implement this.
-    """
-
     def __init__(self, capacity):
         if capacity > MIN_CAPACITY:
             self.capacity = capacity
         else:
             self.capacity = MIN_CAPACITY
-        
-        self.table = [LinkedList()] * capacity
+        self.table = []
+        for i in range(capacity):
+            self.table.append(LinkedList())
 
 
     def get_num_slots(self):
-        """
-        Return the length of the list you're using to hold the hash
-        table data. (Not the number of items stored in the hash table,
-        but the number of slots in the main list.)
-
-        One of the tests relies on this.
-
-        Implement this.
-        """
-        # Your code here
         return self.capacity
 
 
     def get_load_factor(self):
-        """
-        Return the load factor for this hash table.
-
-        Implement this.
-        """
-        # Your code here
         load_factor = 0
         for e in self.table:
-            if e is not None:
+            if e.head is not None:
                 load_factor += 1
-        
+        #print(load_factor / self.capacity)
         return load_factor / self.capacity
 
 
@@ -174,35 +157,22 @@ class HashTable:
 
         node = self.table[index].find(key)#Try to find the key in the linked list, store it in node
 
+
         if node == None: #Key not found, let's insert a new one into the linked list!
             self.table[index].insert(key, value)
+            #print(index)
+
+            if(self.get_load_factor() >= 0.7):
+                self.resize(self.capacity * 2)
         else: #key found, lets override the current value
             node.value = value
     
     def delete(self, key):
-        """
-        Remove the value stored with the given key.
-
-        Print a warning if the key is not found.
-
-        Implement this.
-        """
-        # Your code here
         index = self.hash_index(key) #Let's just get the index and put it here
-
         self.table[index].remove(key)
 
     def get(self, key):
-        """
-        Retrieve the value stored with the given key.
-
-        Returns None if the key is not found.
-
-        Implement this.
-        """
-        # Your code here
         index = self.hash_index(key) #get the index
-        
         node = self.table[index].find(key) #search the linked list
 
         if node == None: #node is None if the key wasn't found, return None
@@ -211,13 +181,32 @@ class HashTable:
         return node.value #Otherwise return the value
 
     def resize(self, new_capacity):
-        """
-        Changes the capacity of the hash table and
-        rehashes all key/value pairs.
+        old_capacity = self.capacity
+        while self.capacity < new_capacity: #Increases 
+            self.table.append(LinkedList())
+            self.capacity += 1
 
-        Implement this.
-        """
-        # Your code here
+        for index in range(old_capacity):
+            #print(self.table[index].__repr__())
+            curr = self.table[index].head
+            prev = None
+            while(curr != None): #Go through the Linked List till you run into None
+                if self.hash_index(curr.key) != index: #Uh oh, this means we have to move it
+                    if curr == self.table[index].head: # If we are at the head
+                        self.table[index].head = curr.next
+                    else:
+                        prev.next = curr.next 
+                        curr.next = None
+
+                    self.put(curr.key, curr.value)
+                    break
+                else:
+                    prev = curr
+                    curr = curr.next
+
+            #print(self.table[index].__repr__())
+
+
 
 
 
@@ -237,9 +226,11 @@ if __name__ == "__main__":
     ht.put("line_11", "So rested he by the Tumtum tree")
     ht.put("line_12", "And stood awhile in thought.")
 
+    #for e in ht.table:
+    #    print(e.__repr__())
     print("")
 
-    # Test storing beyond capacity
+    #Test storing beyond capacity
     for i in range(1, 13):
         print(ht.get(f"line_{i}"))
 
