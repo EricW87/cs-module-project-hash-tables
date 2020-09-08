@@ -171,6 +171,9 @@ class HashTable:
         index = self.hash_index(key) #Let's just get the index and put it here
         self.table[index].remove(key)
 
+        if(self.capacity >= (2 * MIN_CAPACITY) and self.get_load_factor() <= 0.2 ):
+            self.resize(int(self.capacity * 0.5))
+
     def get(self, key):
         index = self.hash_index(key) #get the index
         node = self.table[index].find(key) #search the linked list
@@ -182,9 +185,10 @@ class HashTable:
 
     def resize(self, new_capacity):
         old_capacity = self.capacity
-        while self.capacity < new_capacity: #Increases 
+        while len(self.table) < new_capacity: #Increases, will be skipped if halving capacity
             self.table.append(LinkedList())
-            self.capacity += 1
+
+        self.capacity = new_capacity
 
         for index in range(old_capacity):
             #print(self.table[index].__repr__())
@@ -204,11 +208,11 @@ class HashTable:
                     prev = curr
                     curr = curr.next
 
+        if new_capacity < old_capacity: #if shrinking table; shorten table
+            for i in range(new_capacity, old_capacity):
+                self.table.pop()
+
             #print(self.table[index].__repr__())
-
-
-
-
 
 if __name__ == "__main__":
     ht = HashTable(8)
