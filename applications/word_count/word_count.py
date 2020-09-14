@@ -1,5 +1,35 @@
 def word_count(s):
     # Your code here
+    dict = {}
+    forbidden = '":;,.-+=/\|[]{}()*^$&'
+
+    word = ""
+    for c in s:
+        if c != ' ' and c != '\t' and c != '\r' and c != '\n':
+            if c not in forbidden:
+                word += c
+        else:
+            if len(word) > 0:
+                word = word.lower()
+                if word in dict:
+                    dict[word] += 1
+                else:
+                    dict[word] = 1
+
+                word = ""
+
+    if len(word) > 0:
+        if word in dict:
+            dict[word] += 1
+        else:
+            dict[word] = 1
+
+    print(dict)
+    return dict
+
+
+
+
 
 
 
